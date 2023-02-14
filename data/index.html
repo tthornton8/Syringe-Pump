@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Stepper Motor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="stylesheet" href="all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+</head>
+<body>
+  <div class="topnav">
+    <h1>Syringe Pump Control <i class="fas fa-cogs"></i></h1>
+  </div>
+  <div class="content">
+    <form action="/run">
+		<div style = "text-align: center;">
+			<input type="radio" name="direction" value="push" checked>
+			<label for="CW">Push</label>
+			<input type="radio" name="direction" value="pull">
+			<label for="CW">Pull</label>
+		</div>
+		
+		<br><br>
+
+		<label for="volume">Volume (ml)</label>
+		<input type="number" step = "any" name="volume">
+
+		<label for="time">Time (s)</label>
+		<input type="number" step = "any" name="time">
+
+		<label for="diameter">Syringe Inner Diameter (mm)</label>
+		<input type="number" step = "any" name="diameter" value = 10>
+
+		<input type="submit" value="Start">
+    </form>
+	<form action="/stop">
+		<input type="submit" value="Stop">
+	</form>
+	<br>
+	<div style = "text-align: center;">
+		Pumped Volume: %PLACEHOLDER_VOLUME% ml
+	</div>
+  </div>
+</body>
+</html>
