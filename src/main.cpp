@@ -2,18 +2,21 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
-#include <LITTLEFS.h> 
+#include <SPIFFS.h> 
 #include <AccelStepper.h>
+#include <AsyncElegantOTA.h>
+
+
 
 const double degrees_per_step = 1.8;
 const int microsteps          = 32;
 const int pitch               = 1;
-const int dir_pin             = 25;
-const int step_pin            = 26; 
+const int dir_pin             = 23;
+const int step_pin            = 22; 
 const char* ssid              = "electrospinning";
 const char* password          = "electrospinning";
 
-AccelStepper stepper(AccelStepper::FULL4WIRE, step_pin, dir_pin);
+AccelStepper stepper(AccelStepper::DRIVER, step_pin, dir_pin);
 AsyncWebServer server(80);
 
 double diameter = 10; 
@@ -47,18 +50,36 @@ String processor(const String& var) {
 }
 
 void setup() { 
-  stepper.setMaxSpeed(100.0);
-  stepper.setAcceleration(100.0);
+ pinMode(step_pin, OUTPUT); //Step pin as output
+ pinMode(dir_pin,  OUTPUT); //Direcction pin as output
+
+  stepper.setMaxSpeed(1000.0);
+  stepper.setAcceleration(16000.0);
   stepper.setCurrentPosition(0);
 
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
 
-  LittleFS.begin();
+  Serial.begin(9600);
+  Serial.print("AP IP address: ");
+  Serial.println(IP);
+
+  // Print ESP32Local IP Address
+  Serial.println(WiFi.localIP());
+
+  if(!SPIFFS.begin()){
+    Serial.println("An Error has occurred while mounting SPIFFS");
+    return;
+  }
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(LittleFS, "/index.html", String(), false, processor);
+    request->send(SPIFFS, "/index.html", String(), false, processor);
+  });
+
+  // Route to load style.css file
+  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/style.css", "text/css");
   });
 
   // Speed / volume control
@@ -75,18 +96,28 @@ void setup() {
     int microsteps_request = calcSteps(volRequest);
     double speed = microsteps_request / timeRequest;
 
+    Serial.println(microsteps_request);
+    Serial.println(speed);
+    
     if (dirRequestString.compareTo("pull")) {
       microsteps_request =- microsteps_request;
     }
 
     stepper.setSpeed(speed);
     stepper.move(microsteps_request);
+
+    request->send(SPIFFS, "/index.html", String(), false, processor);
   });
 
   // stop the syringe
   server.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request){
     stepper.stop();
+    request->send(SPIFFS, "/index.html", String(), false, processor);
   });
+
+  AsyncElegantOTA.begin(&server);    // Start ElegantOTA
+  server.begin();
+
 }
 
 void loop() {
