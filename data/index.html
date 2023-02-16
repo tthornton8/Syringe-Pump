@@ -4,8 +4,8 @@
   <title>Stepper Motor</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="style.css">
-  <link rel="icon" type="image/png" href="favicon.png">
-  <link rel="stylesheet" href="all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
+  <script src="js/jquery.js"></script>
+
 </head>
 <body>
   <div class="topnav">
@@ -36,10 +36,41 @@
 	<form action="/stop">
 		<input type="submit" value="Stop">
 	</form>
+	<form action="/reset">
+		<input type="submit" value="Reset">
+	</form>
 	<br>
 	<div style = "text-align: center;">
-		Pumped Volume: %PLACEHOLDER_VOLUME% ml
+		<p>Pumped Volume: <strong> <span id = "motorPos_span"></span></strong> &mu;l</p>
 	</div>
   </div>
+	<div class = "footer" id = "footer">
+		<a href = '/update'>Software update</a>
+	</div>
+  <script>
+	$(function() {
+    // request data every second
+    setInterval(requestData, 1000);
+
+    function requestData() {
+
+      // ajax request for latest sensor data
+      $.get("/motor_pos")
+        .done(function(data) {
+
+          console.log(data);  // debugging - remove when satisfied
+
+          if (data) { // if the returned data is not null, update the values
+            $("#motorPos_span").text(data.motorPos);
+          } else { // a problem occurred
+            $("#motorPos_span").text("?");
+          }
+        }).fail(function() {
+          console.log("The was a problem retrieving the stepper data.");
+        });
+    }
+
+    });
+  </script>
 </body>
 </html>

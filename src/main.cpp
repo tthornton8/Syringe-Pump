@@ -21,8 +21,18 @@ AsyncWebServer server(80);
 
 double diameter = 10; 
 
+double calcVolume(long steps) {
+  double micro_steps  = double(steps) / double(microsteps); // ul
+  double revs   = micro_steps * degrees_per_step/360.; // ul
+  double length = revs * pitch; // mm
+  double area   = 3.14159265359*diameter*diameter/4.; //mm^2
+  double volume = length * area / 1e3;
+
+  return volume;
+}
+
 int calcSteps(double volume) {
-  double area   = 3.14159265359*diameter*diameter/4; //mm^2
+  double area   = 3.14159265359*diameter*diameter/4.; //mm^2
   double length = 1e3*volume / area; // mm
   double revs   = length / pitch; // ul
   double steps  = (revs * 360.0) / degrees_per_step; // ul
@@ -35,26 +45,12 @@ void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
-String processor(const String& var) {
-  if (var == "PLACEHOLDER_VOLUME") {
-    double steps  = stepper.currentPosition()/microsteps; // ul
-    double revs   = steps * degrees_per_step/360; // ul
-    double length = revs * pitch; // mm
-    double area   = 3.14159265359*diameter*diameter/4; //mm^2
-    double volume = length * area / 1e3;
-
-    return String(volume, 2);
-  } else {
-    return String();
-  }
-}
-
 void setup() { 
  pinMode(step_pin, OUTPUT); //Step pin as output
  pinMode(dir_pin,  OUTPUT); //Direcction pin as output
 
-  stepper.setMaxSpeed(1000.0);
-  stepper.setAcceleration(16000.0);
+  stepper.setMaxSpeed(1000000.0);
+  stepper.setAcceleration(100000.0);
   stepper.setCurrentPosition(0);
 
   WiFi.softAP(ssid, password);
@@ -74,12 +70,20 @@ void setup() {
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", String(), false, processor);
+    request->send(SPIFFS, "/index.html", String(), false);
   });
 
   // Route to load style.css file
   server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/style.css", "text/css");
+  });
+
+  // Return motor position when requested
+  server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
+    long steps = stepper.currentPosition();
+    double volume = calcVolume(steps)*1000;
+
+    request->send(200, "application/json", "{\"motorPos\": " + String(volume, 2) + "}"); 
   });
 
   // Speed / volume control
@@ -106,13 +110,28 @@ void setup() {
     stepper.setSpeed(speed);
     stepper.move(microsteps_request);
 
-    request->send(SPIFFS, "/index.html", String(), false, processor);
+    request->send(SPIFFS, "/index.html", String(), false);
   });
 
   // stop the syringe
   server.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request){
     stepper.stop();
-    request->send(SPIFFS, "/index.html", String(), false, processor);
+    request->send(SPIFFS, "/index.html", String(), false);
+  });
+
+  // reset volume
+  server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
+    stepper.setCurrentPosition(0);
+    request->send(SPIFFS, "/index.html", String(), false);
+  });
+
+  // JS Scripts
+  server.on("/js/jquery.js", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/jquery.js", "text/javascript");
+  });
+
+  server.on("/js/jquery-ui.js", HTTP_GET, [](AsyncWebServerRequest *request){
+      request->send(SPIFFS, "/jquery-ui.js", "text/javascript");
   });
 
   AsyncElegantOTA.begin(&server);    // Start ElegantOTA
