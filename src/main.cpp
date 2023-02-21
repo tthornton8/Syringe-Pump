@@ -24,14 +24,14 @@ double calcVolume(long steps) {
   double revs   = micro_steps * degrees_per_step/360.; // ul
   double length = revs * pitch; // mm
   double area   = 3.14159265359*diameter*diameter/4.; //mm^2
-  double volume = length * area / 1e3;
+  double volume = length * area / 1e2;
 
   return volume;
 }
 
 int calcSteps(double volume) {
   double area   = 3.14159265359*diameter*diameter/4.; //mm^2
-  double length = 1e3*volume / area; // mm
+  double length = 1e2*volume / area; // mm
   double revs   = length / pitch; // ul
   double steps  = (revs * 360.0) / degrees_per_step; // ul
   
