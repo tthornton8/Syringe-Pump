@@ -6,8 +6,6 @@
 #include <AccelStepper.h>
 #include <AsyncElegantOTA.h>
 
-
-
 const double degrees_per_step = 1.8;
 const int microsteps          = 32;
 const int pitch               = 1;
@@ -19,7 +17,7 @@ const char* password          = "electrospinning";
 AccelStepper stepper(AccelStepper::DRIVER, step_pin, dir_pin);
 AsyncWebServer server(80);
 
-double diameter = 10; 
+double diameter = 15; 
 
 double calcVolume(long steps) {
   double micro_steps  = double(steps) / double(microsteps); // ul
@@ -107,8 +105,8 @@ void setup() {
       microsteps_request =- microsteps_request;
     }
 
-    stepper.setSpeed(speed);
     stepper.move(microsteps_request);
+    stepper.setSpeed(speed);
 
     request->send(SPIFFS, "/index.html", String(), false);
   });
@@ -140,5 +138,5 @@ void setup() {
 }
 
 void loop() {
-  stepper.run();
+  stepper.runSpeedToPosition();
 }
