@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Stepper Motor</title>
+  <title>Syringe Pump</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="style.css">
   <script src="js/jquery.js"></script>
@@ -22,11 +22,13 @@
 		
 		<br><br>
 
-		<label for="volume">Volume (ml)</label>
-		<input type="number" step = "any" name="volume">
+    <div style="border: 3; border-color: grey;">
+      <label for="volume">Volume (ml)</label>
+      <input type="number" step = "any" name="volume">
 
-		<label for="time">Time (s)</label>
-		<input type="number" step = "any" name="time">
+      <label for="time">Time (s)</label>
+      <input type="number" step = "any" name="time">
+    </div>
 
 		<label for="diameter">Syringe Inner Diameter (mm)</label>
 		<input type="number" step = "any" name="diameter" value = 15>
@@ -42,6 +44,7 @@
 	<br>
 	<div style = "text-align: center;">
 		<p>Pumped Volume: <strong> <span id = "motorPos_span"></span></strong> &mu;l</p>
+    <p>Speed: <strong> <span id = "speed_span"></span></strong> ml/hr</p>
 	</div>
   </div>
 	<div class = "footer" id = "footer">
@@ -62,8 +65,10 @@
 
           if (data) { // if the returned data is not null, update the values
             $("#motorPos_span").text(data.motorPos);
+            $("#speed_span").text(data.speed);
           } else { // a problem occurred
             $("#motorPos_span").text("?");
+            $("#speed_span").text("?");
           }
         }).fail(function() {
           console.log("The was a problem retrieving the stepper data.");

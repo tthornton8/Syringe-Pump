@@ -7,8 +7,8 @@
 #include <AsyncElegantOTA.h>
 
 const double degrees_per_step = 1.8;
-const int microsteps          = 32;
-const int pitch               = 1;
+const double microsteps       = 32.;
+const double pitch            = 0.792;
 const int dir_pin             = 23;
 const int step_pin            = 22; 
 const char* ssid              = "electrospinning";
@@ -27,6 +27,12 @@ double calcVolume(long steps) {
   double volume = length * area / 1e2;
 
   return volume;
+}
+
+double calcSpeed(long rate) {
+  double speed = calcVolume(rate);
+
+  return speed;
 }
 
 int calcSteps(double volume) {
@@ -78,10 +84,12 @@ void setup() {
 
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
-    long steps = stepper.currentPosition();
+    long steps = -stepper.currentPosition();
+    long rate  = -stepper.speed();
     double volume = calcVolume(steps)*1000;
+    double speed  = calcSpeed(rate)*3600;
 
-    request->send(200, "application/json", "{\"motorPos\": " + String(volume, 2) + "}"); 
+    request->send(200, "application/json", "{\"motorPos\": " + String(volume, 2) + ",\"speed\": " + String(speed, 2) + "}"); 
   });
 
   // Speed / volume control
