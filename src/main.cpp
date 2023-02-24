@@ -11,6 +11,8 @@ const double microsteps       = 32.;
 const double pitch            = 0.792;
 const int dir_pin             = 23;
 const int step_pin            = 22; 
+const int endstop1            = 27;
+const int endstop2            = 26;
 const char* ssid              = "electrospinning";
 const char* password          = "electrospinning";
 
@@ -50,8 +52,11 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void setup() { 
- pinMode(step_pin, OUTPUT); //Step pin as output
- pinMode(dir_pin,  OUTPUT); //Direcction pin as output
+  pinMode(step_pin, OUTPUT); //Step pin as output
+  pinMode(dir_pin,  OUTPUT); //Direcction pin as output
+  pinMode(endstop1,  INPUT); //Direcction pin as input
+  pinMode(endstop2,  INPUT); //Direcction pin as input
+
 
   stepper.setMaxSpeed(1000000.0);
   stepper.setAcceleration(100000.0);
@@ -85,9 +90,9 @@ void setup() {
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
     long steps = -stepper.currentPosition();
-    long rate  = -stepper.speed();
-    double volume = calcVolume(steps)*1000;
-    double speed  = calcSpeed(rate)*3600;
+    long rate  = stepper.speed();
+    double volume = calcVolume(steps)*1000.;
+    double speed  = calcSpeed(rate)*3600.;
 
     request->send(200, "application/json", "{\"motorPos\": " + String(volume, 2) + ",\"speed\": " + String(speed, 2) + "}"); 
   });
@@ -147,4 +152,7 @@ void setup() {
 
 void loop() {
   stepper.runSpeedToPosition();
+  // Serial.println(digitalRead(endstop1));
+  // Serial.println(digitalRead(endstop2));
+  // Serial.println();
 }
