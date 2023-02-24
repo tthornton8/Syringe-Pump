@@ -5,18 +5,21 @@
 #include <SPIFFS.h> 
 #include <AccelStepper.h>
 #include <AsyncElegantOTA.h>
+#include <TMCSTepper.h>
 
 const double degrees_per_step = 1.8;
 const double microsteps       = 32.;
 const double pitch            = 0.792;
-const int dir_pin             = 23;
-const int step_pin            = 22; 
+const int dir_pin1            = 23;
+const int step_pin1           = 22; 
+const int dir_pin2            = 5;
+const int step_pin2           = 18; 
 const int endstop1            = 27;
 const int endstop2            = 26;
 const char* ssid              = "electrospinning";
 const char* password          = "electrospinning";
 
-AccelStepper stepper(AccelStepper::DRIVER, step_pin, dir_pin);
+AccelStepper stepper(AccelStepper::DRIVER, step_pin1, dir_pin1);
 AsyncWebServer server(80);
 
 double diameter = 15; 
@@ -52,8 +55,8 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void setup() { 
-  pinMode(step_pin, OUTPUT); //Step pin as output
-  pinMode(dir_pin,  OUTPUT); //Direcction pin as output
+  pinMode(step_pin1, OUTPUT); //Step pin as output
+  pinMode(dir_pin1,  OUTPUT); //Direcction pin as output
   pinMode(endstop1,  INPUT); //Direcction pin as input
   pinMode(endstop2,  INPUT); //Direcction pin as input
 
