@@ -24,6 +24,7 @@ const char* password          = "electrospinning";
 
 #define SERIAL_PORT2 Serial2
 #define SERIAL_PORT1 Serial
+#define Serial_debug Serial1
 #define R_SENSE 0.11f
 
 TMC2208Stepper driver1(&SERIAL_PORT1, R_SENSE);   
@@ -32,6 +33,7 @@ AccelStepper stepper2(AccelStepper::DRIVER, step_pin2, dir_pin2);
 AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
 AsyncWebServer server(80);
 
+// AccelStepper* stepper[] = {&stepper1, &stepper2};
 double diameter = 15; 
 
 double calcVolume(long steps) {
@@ -75,9 +77,10 @@ void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN) {
   stepper.setMaxSpeed(10000); // 100mm/s @ 80 steps/mm
   stepper.setAcceleration(10000); // 2000mm/s^2
   stepper.setEnablePin(EN_PIN);
-  stepper.setPinsInverted(false, false, false);
+  stepper.setPinsInverted(true, false, true);
   stepper.enableOutputs();
   stepper.setCurrentPosition(0);
+  stepper.setSpeed(0);
 }
 
 void setup() { 
@@ -94,15 +97,15 @@ void setup() {
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
 
-  Serial1.begin(9600);
-  Serial1.print("AP IP address: ");
-  Serial1.println(IP);
+  Serial_debug.begin(9600);
+  Serial_debug.print("AP IP address: ");
+  Serial_debug.println(IP);
 
   // Print ESP32Local IP Address
-  Serial1.println(WiFi.localIP());
+  Serial.println(WiFi.localIP());
 
   if(!SPIFFS.begin()){
-    Serial1.println("An Error has occurred while mounting SPIFFS");
+    Serial_debug.println("An Error has occurred while mounting SPIFFS");
     return;
   }
 
@@ -118,50 +121,81 @@ void setup() {
 
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
-    long steps = -stepper1.currentPosition();
-    long rate  = stepper1.speed();
-    double volume = calcVolume(steps)*1000.;
-    double speed  = calcSpeed(rate)*3600.;
+    long steps1 = -stepper1.currentPosition();
+    long rate1  = stepper1.speed();
+    long steps2 = -stepper2.currentPosition();
+    long rate2  = stepper2.speed();
 
-    request->send(200, "application/json", "{\"motorPos\": " + String(volume, 2) + ",\"speed\": " + String(speed, 2) + "}"); 
+    double volume1 = calcVolume(steps1)*1000.;
+    double volume2 = calcVolume(steps2)*1000.;
+    double speed1  = calcSpeed(rate1)*3600.;
+    double speed2  = calcSpeed(rate2)*3600.;
+
+    request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + ",\"speed1\": " + String(speed1, 2) + ",\"motorPos2\": " + String(volume2, 2) + ",\"speed2\": " + String(speed2, 2) + "}"); 
   });
 
   // Speed / volume control
   server.on("/run", HTTP_GET, [] (AsyncWebServerRequest *request) {
-    String volRequestString   = request->getParam("volume")->value();
-    String timeRequestString  = request->getParam("time")->value();
-    String dirRequestString   = request->getParam("direction")->value();
-    String diameterString     = request->getParam("diameter")->value();
+    for (int i = 1; i <= 2; i++) {
+      AccelStepper* stepper;
 
-    double volRequest  = volRequestString.toDouble();
-    double timeRequest = timeRequestString.toDouble();
-    diameter = diameterString.toDouble();
+      if (i==1) {
+        stepper = &stepper1;
+      } else {
+        stepper = &stepper2;
+      }
 
-    int microsteps_request = calcSteps(volRequest);
-    double speed = microsteps_request / timeRequest;
+      String volRequestString   = request->getParam("volume" + String(i))->value();
+      String timeRequestString  = request->getParam("time" + String(i))->value();
+      String dirRequestString   = request->getParam("direction" + String(i))->value();
+      String diameterString     = request->getParam("diameter" + String(i))->value();
 
-    Serial1.println(microsteps_request);
-    Serial1.println(speed);
-    
-    if (dirRequestString.compareTo("pull")) {
-      microsteps_request =- microsteps_request;
+      Serial_debug.println(volRequestString);
+      Serial_debug.println(timeRequestString);
+      Serial_debug.println(dirRequestString);
+      Serial_debug.println(diameterString);
+
+      double volRequest  = volRequestString.toDouble();
+      double timeRequest = timeRequestString.toDouble();
+      diameter = diameterString.toDouble();
+
+      Serial_debug.println(volRequest);
+      Serial_debug.println(timeRequest);
+      Serial_debug.println(diameter);
+
+      if (volRequest*timeRequest*diameter == 0.) {
+        continue;
+      }
+
+      int microsteps_request = calcSteps(volRequest);
+      double speed = microsteps_request / timeRequest;
+
+      Serial_debug.println(microsteps_request);
+      Serial_debug.println(speed);
+      Serial_debug.println();
+      
+      if (dirRequestString.compareTo("pull")) {
+        microsteps_request =- microsteps_request;
+      }
+
+      stepper->move(microsteps_request);
+      stepper->setSpeed(speed);
+
     }
-
-    stepper1.move(microsteps_request);
-    stepper1.setSpeed(speed);
-
     request->send(SPIFFS, "/index.html", String(), false);
   });
 
   // stop the syringe
   server.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request){
     stepper1.stop();
+    stepper2.stop();
     request->send(SPIFFS, "/index.html", String(), false);
   });
 
   // reset volume
   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
     stepper1.setCurrentPosition(0);
+    stepper2.setCurrentPosition(0);
     request->send(SPIFFS, "/index.html", String(), false);
   });
 
@@ -176,19 +210,17 @@ void setup() {
 
   AsyncElegantOTA.begin(&server);    // Start ElegantOTA
   server.begin();
-
 }
 
-bool shaft = false;
 void loop() {
   stepper1.runSpeedToPosition();
   stepper2.runSpeedToPosition();
 
+  if (stepper1.distanceToGo() == 0) {
+    stepper1.setSpeed(0);
+  }
+
   if (stepper2.distanceToGo() == 0) {
-        delay(100);
-        stepper2.move(100*1000); // Move 100mm
-        shaft = !shaft;
-        driver2.shaft(shaft);
-    }
-    stepper2.run();
+    stepper2.setSpeed(0);
+  }
 }

@@ -12,40 +12,81 @@
     <h1>Syringe Pump Control <i class="fas fa-cogs"></i></h1>
   </div>
   <div class="content">
-    <form action="/run">
-		<div style = "text-align: center;">
-			<input type="radio" name="direction" value="push" checked>
-			<label for="CW">Push</label>
-			<input type="radio" name="direction" value="pull">
-			<label for="CW">Pull</label>
+	<form action="/run">
+		<div class = "form-grid-container">
+			<div class="grid-item item1">
+				<h2 style = "text-align: center;"> Pump 1 </h2>
+
+				<div style = "text-align: center;">
+					<input type="radio" name="direction1" value="push" checked>
+					<label for="CW">Push</label>
+					<input type="radio" name="direction1" value="pull">
+					<label for="CW">Pull</label>
+				</div>
+				
+				<br>
+
+				<div style="border: 3; border-color: grey;">
+					<label for="volume1">Volume (ml)</label>
+					<input type="number" step = "any" name="volume1">
+
+					<label for="time1">Time (s)</label>
+					<input type="number" step = "any" name="time1">
+				
+					<label for="diameter1">Syringe Inner Diameter (mm)</label>
+					<input type="number" step = "any" name="diameter1" value = 15>
+				</div>
+
+				<div style = "text-align: center;">
+					<p>Pumped Volume: <strong> <span id = "motorPos1_span"></span></strong> &mu;l</p>
+					<p>Speed: <strong> <span id = "speed1_span"></span></strong> ml/hr</p>
+				</div>
+			</div>
+
+			<div class="grid-item item2">
+				<h2 style = "text-align: center;"> Pump 2 </h2>
+
+				<div style = "text-align: center;">
+					<input type="radio" name="direction2" value="push" checked>
+					<label for="CW">Push</label>
+					<input type="radio" name="direction2" value="pull">
+					<label for="CW">Pull</label>
+				</div>
+				
+				<br>
+
+				<div style="border: 3; border-color: grey;">
+					<label for="volume2">Volume (ml)</label>
+					<input type="number" step = "any" name="volume2">
+
+					<label for="time2">Time (s)</label>
+					<input type="number" step = "any" name="time2">
+				
+					<label for="diameter2">Syringe Inner Diameter (mm)</label>
+					<input type="number" step = "any" name="diameter2" value = 15>
+				</div>
+
+				<div style = "text-align: center;">
+					<p>Pumped Volume: <strong> <span id = "motorPos2_span"></span></strong> &mu;l</p>
+					<p>Speed: <strong> <span id = "speed2_span"></span></strong> ml/hr</p>
+				</div>
+			</div>
+			
+			<div class="grid-item item3">
+				<input type="submit" value="Start">
+			</div>
 		</div>
-		
-		<br><br>
+	</form>
 
-    <div style="border: 3; border-color: grey;">
-      <label for="volume">Volume (ml)</label>
-      <input type="number" step = "any" name="volume">
 
-      <label for="time">Time (s)</label>
-      <input type="number" step = "any" name="time">
-    </div>
-
-		<label for="diameter">Syringe Inner Diameter (mm)</label>
-		<input type="number" step = "any" name="diameter" value = 15>
-
-		<input type="submit" value="Start">
-    </form>
-	<form action="/stop">
+	<form class = "grid-item" action="/stop">
 		<input type="submit" value="Stop">
 	</form>
-	<form action="/reset">
+	<form class = "grid-item" action="/reset">
 		<input type="submit" value="Reset">
 	</form>
 	<br>
-	<div style = "text-align: center;">
-		<p>Pumped Volume: <strong> <span id = "motorPos_span"></span></strong> &mu;l</p>
-    <p>Speed: <strong> <span id = "speed_span"></span></strong> ml/hr</p>
-	</div>
+	
   </div>
 	<div class = "footer" id = "footer">
 		<a href = '/update'>Software update</a>
@@ -64,11 +105,15 @@
           console.log(data);  // debugging - remove when satisfied
 
           if (data) { // if the returned data is not null, update the values
-            $("#motorPos_span").text(data.motorPos);
-            $("#speed_span").text(data.speed);
+            $("#motorPos1_span").text(data.motorPos1);
+            $("#speed1_span").text(data.speed1);
+            $("#motorPos2_span").text(data.motorPos2);
+            $("#speed2_span").text(data.speed2);
           } else { // a problem occurred
-            $("#motorPos_span").text("?");
-            $("#speed_span").text("?");
+            $("#motorPos1_span").text("?");
+            $("#speed1_span").text("?");
+            $("#motorPos2_span").text("?");
+            $("#speed2_span").text("?");
           }
         }).fail(function() {
           console.log("The was a problem retrieving the stepper data.");
