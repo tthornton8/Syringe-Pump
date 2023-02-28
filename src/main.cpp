@@ -8,6 +8,15 @@
 #include <TMCSTepper.h>
 #include <HardwareSerial.h>
 
+#define RXD1 12
+#define TXD1 13
+#define RXD2 16
+#define TXD2 15
+
+HardwareSerial SerialPort2 (2);   // This is the key line missing.
+// HardwareSerial SerialPort2 (2);   // This is the key line missing.
+
+
 const double degrees_per_step = 1.8;
 const double microsteps       = 256.;
 const double pitch            = 0.792;
@@ -22,16 +31,17 @@ const int endstop2            = 26;
 const char* ssid              = "electrospinning";
 const char* password          = "electrospinning";
 
-#define SERIAL_PORT2 Serial2
-#define SERIAL_PORT1 Serial
-#define Serial_debug Serial1
+#define SERIAL_PORT2 SerialPort2
+#define SERIAL_PORT1 Serial1
+#define Serial_debug Serial
 #define R_SENSE 0.11f
 
 TMC2208Stepper driver1(&SERIAL_PORT1, R_SENSE);   
 TMC2208Stepper driver2(&SERIAL_PORT2, R_SENSE);   
 AccelStepper stepper2(AccelStepper::DRIVER, step_pin2, dir_pin2);
 AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
-AsyncWebServer server(80);
+AsyncWebServer server(80);    // SW UART drivers
+
 
 // AccelStepper* stepper[] = {&stepper1, &stepper2};
 double diameter = 15; 
@@ -66,8 +76,7 @@ void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
-void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN) {
-  Serial2.begin(115200);     // SW UART drivers
+void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN, bool dir_invert) {
   driver.begin();             // Initiate pins and registeries
   driver.toff(5);
   driver.rms_current(1200);    // Set stepper current to 600mA. The command is the same as command TMC2130.setCurrent(600, 0.11, 0.5);
@@ -77,7 +86,7 @@ void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN) {
   stepper.setMaxSpeed(10000); // 100mm/s @ 80 steps/mm
   stepper.setAcceleration(10000); // 2000mm/s^2
   stepper.setEnablePin(EN_PIN);
-  stepper.setPinsInverted(true, false, true);
+  stepper.setPinsInverted(dir_invert, false, true);
   stepper.enableOutputs();
   stepper.setCurrentPosition(0);
   stepper.setSpeed(0);
@@ -91,8 +100,12 @@ void setup() {
   pinMode(endstop1,  INPUT); //Direcction pin as input
   pinMode(endstop2,  INPUT); //Direcction pin as input
 
-  setupDriver(driver1, stepper1, en_pin1);
-  setupDriver(driver2, stepper2, en_pin2);
+  Serial1.begin(115200, SERIAL_8N1, RXD1, TXD1);
+  SerialPort2.begin(115200, SERIAL_8N1, 16, 17);
+  
+  setupDriver(driver1, stepper1, en_pin1, true);
+  setupDriver(driver2, stepper2, en_pin2, false);
+
 
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
