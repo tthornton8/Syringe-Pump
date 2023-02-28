@@ -83,8 +83,8 @@ void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN, bool
   driver.pwm_autoscale(true);
   driver.microsteps(256);
 
-  stepper.setMaxSpeed(10000); // 100mm/s @ 80 steps/mm
-  stepper.setAcceleration(10000); // 2000mm/s^2
+  stepper.setMaxSpeed(500000); 
+  stepper.setAcceleration(10000); 
   stepper.setEnablePin(EN_PIN);
   stepper.setPinsInverted(dir_invert, false, true);
   stepper.enableOutputs();
