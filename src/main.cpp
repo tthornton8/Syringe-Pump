@@ -46,7 +46,7 @@ AsyncWebServer server(80);    // SW UART drivers
 // AccelStepper* stepper[] = {&stepper1, &stepper2};
 double diameter = 15; 
 
-double calcVolume(long steps) {
+double calcVolume(double steps) {
   double micro_steps  = double(steps) / double(microsteps); // ul
   double revs   = micro_steps * degrees_per_step/360.; // ul
   double length = revs * pitch; // mm
@@ -56,7 +56,7 @@ double calcVolume(long steps) {
   return volume;
 }
 
-double calcSpeed(long rate) {
+double calcSpeed(double rate) {
   double speed = calcVolume(rate);
 
   return speed;
@@ -135,16 +135,16 @@ void setup() {
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
     long steps1 = -stepper1.currentPosition();
-    long rate1  = stepper1.speed();
+    double rate1  = stepper1.speed();
     long steps2 = -stepper2.currentPosition();
-    long rate2  = stepper2.speed();
+    double rate2  = stepper2.speed();
 
     double volume1 = calcVolume(steps1)*1000.;
     double volume2 = calcVolume(steps2)*1000.;
     double speed1  = calcSpeed(rate1)*3600.;
     double speed2  = calcSpeed(rate2)*3600.;
 
-    request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + ",\"speed1\": " + String(speed1, 2) + ",\"motorPos2\": " + String(volume2, 2) + ",\"speed2\": " + String(speed2, 2) + "}"); 
+    request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + ",\"speed1\": " + String(speed1, 4) + ",\"motorPos2\": " + String(volume2, 2) + ",\"speed2\": " + String(speed2, 4) + "}"); 
   });
 
   // Speed / volume control
