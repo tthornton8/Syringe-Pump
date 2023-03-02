@@ -143,6 +143,20 @@ a:link {
 box-sizing: border-box;
 }
 
+.buttonInvisible input {
+	width: 75px;
+	height: 40px;
+	border-radius:10%;
+	font-size: 0.85em;
+}
+
+.buttonInvisible {
+	margin-left: 60px;
+	position: fixed;
+	bottom: 0px;
+	background-color: transparent;
+}
+
 @media only screen and (max-width: 768px) {
 	/* For mobile phones: */
 	.form-grid-container {
@@ -164,8 +178,13 @@ box-sizing: border-box;
 		grid-row: 5;
 	}
 
+	.buttonInvisible {
+		position: fixed;
+		bottom: 0px;
+		background-color: transparent;
+	}
+
 	.grid-item {
-		background-color: #f2f2f2;
 		padding: 5px 20px 5px 20px;
 		width: 100%;
 	}

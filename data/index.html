@@ -74,6 +74,7 @@
 				</div>
 			</div>
 			
+			<div class="grid-item item3" id = "buttonscheck"></div>
 			<div class="grid-item item3" id = "buttons" >
 				<input type="submit" value="Start">
 				<input type="button" value="Stop"  onclick='document.getElementById("stopForm").submit()'>
@@ -92,17 +93,76 @@
 		<a href = '/update'>Software update</a>
 	</div>
   <script>
-	var buttons  = document.getElementById('buttons');
+	var buttons       = document.getElementById('buttons');
+	var buttonscheck  = document.getElementById('buttonscheck');
 
-	function elementInViewport() {
-		var rect = buttons.getBoundingClientRect();
-		return (
-        rect.top >= 0 &&
-        rect.left >= 0 &&
-        rect.bottom <= $(window).height() &&
-        rect.right <=  $(window).width() 
-    );
+	function prependClass(sel, strClass) {
+		var $el = jQuery(sel);
+
+		/* prepend class */
+		var classes = $el.attr('class');
+		classes = strClass +' ' +classes;
+		$el.attr('class', classes);
 	}
+
+	const intersection = (r1, r2) => {
+		const xOverlap = Math.max(0, Math.min(r1.x + r1.w, r2.x + r2.w) - Math.max(r1.x, r2.x));
+		const yOverlap = Math.max(0, Math.min(r1.y + r1.h, r2.y + r2.h) - Math.max(r1.y, r2.y));
+		const overlapArea = xOverlap * yOverlap;
+
+		return overlapArea;
+	}
+
+	const percentInView = (div) => {
+		const rect = div.getBoundingClientRect();
+
+		const dimension = { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
+		const viewport = { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
+		const divsize = dimension.w * dimension.h;
+		const overlap = intersection(dimension, viewport);
+
+		return overlap / divsize;
+	}
+
+	function isElementInViewport (el) {
+
+		// Special bonus for those using jQuery
+		if (typeof jQuery === "function" && el instanceof jQuery) {
+			el = el[0];
+		}
+
+		var rect = el.getBoundingClientRect();
+
+		return ( percentInView(el) > 0.2) ;
+	}
+
+	function onVisibilityChange(el, callback) {
+		var old_visible;
+		return function () {
+			var visible = isElementInViewport(el);
+			if (visible != old_visible) {
+				old_visible = visible;
+				if (typeof callback == 'function') {
+					callback();
+				}
+			}
+		}
+	}
+
+	var handler = onVisibilityChange(buttonscheck, function() {
+    	var visible = isElementInViewport(buttonscheck);
+		if (visible) {
+			buttons.classList.remove('buttonInvisible');
+			buttons.classList.add('item3');
+			console.log('visible');
+		} else {
+			prependClass(buttons, 'buttonInvisible');
+			buttons.classList.remove('item3');
+			console.log('invisible');
+		}
+	});
+
+	$(window).on('DOMContentLoaded load resize scroll', handler);
 	
 
 	$(function() {
