@@ -144,7 +144,13 @@ void setup() {
     double speed1  = calcSpeed(rate1)*3600.;
     double speed2  = calcSpeed(rate2)*3600.;
 
-    request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + ",\"speed1\": " + String(speed1, 4) + ",\"motorPos2\": " + String(volume2, 2) + ",\"speed2\": " + String(speed2, 4) + "}"); 
+    request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + 
+                                            ",\"speed1\": " + String(speed1, 4) + 
+                                            ",\"rate1\": " + String(rate1, 4) + 
+                                            ",\"motorPos2\": " + String(volume2, 2) + 
+                                            ",\"speed2\": " + String(speed2, 4) + 
+                                            ",\"rate2\": " + String(rate2, 4) + 
+                                            "}"); 
   });
 
   // Speed / volume control
@@ -163,18 +169,18 @@ void setup() {
       String dirRequestString   = request->getParam("direction" + String(i))->value();
       String diameterString     = request->getParam("diameter" + String(i))->value();
 
-      Serial_debug.println(volRequestString);
-      Serial_debug.println(timeRequestString);
-      Serial_debug.println(dirRequestString);
-      Serial_debug.println(diameterString);
+      // Serial_debug.println(volRequestString);
+      // Serial_debug.println(timeRequestString);
+      // Serial_debug.println(dirRequestString);
+      // Serial_debug.println(diameterString);
 
       double volRequest  = volRequestString.toDouble();
       double timeRequest = timeRequestString.toDouble();
       diameter = diameterString.toDouble();
 
-      Serial_debug.println(volRequest);
-      Serial_debug.println(timeRequest);
-      Serial_debug.println(diameter);
+      // Serial_debug.println(volRequest);
+      // Serial_debug.println(timeRequest);
+      // Serial_debug.println(diameter);
 
       if (volRequest*timeRequest*diameter == 0.) {
         continue;
@@ -183,9 +189,9 @@ void setup() {
       int microsteps_request = calcSteps(volRequest);
       double speed = microsteps_request / timeRequest;
 
-      Serial_debug.println(microsteps_request);
-      Serial_debug.println(speed);
-      Serial_debug.println();
+      // Serial_debug.println(microsteps_request);
+      // Serial_debug.println(speed);
+      // Serial_debug.println();
       
       if (dirRequestString.compareTo("pull")) {
         microsteps_request =- microsteps_request;

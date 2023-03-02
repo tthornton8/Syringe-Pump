@@ -97,7 +97,7 @@ a:link {
 	display: grid;
 	column-gap: 10px;
 	grid-template-columns: 400px 400px;
-	grid-template-rows: 450px 100px;
+	grid-template-rows: 465px 100px;
 	justify-content: space-evenly;
 	align-content: center;
 }
@@ -128,7 +128,7 @@ box-sizing: border-box;
 	/* For mobile phones: */
 	.form-grid-container {
 		grid-template-columns: 400px;
-		grid-template-rows: 450px 10px 450px 100px;
+		grid-template-rows: 465px 10px 465px 100px;
 		margin: 10px;
 	}
 
