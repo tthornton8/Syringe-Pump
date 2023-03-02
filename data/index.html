@@ -74,18 +74,20 @@
 				</div>
 			</div>
 			
-			<div class="grid-item item3">
+			<div class="grid-item item3" id = >
 				<input type="submit" value="Start">
+				<input type="button" value="Stop">
+				<input type="button" value="Reset">
 			</div>
 		</div>
 	</form>
 
 
 	<form class = "grid-item" action="/stop">
-		<input type="submit" value="Stop">
+		
 	</form>
 	<form class = "grid-item" action="/reset">
-		<input type="submit" value="Reset">
+		
 	</form>
 	<br>
 	
@@ -94,6 +96,7 @@
 		<a href = '/update'>Software update</a>
 	</div>
   <script>
+	var buttons = document.getElementById('buttons')
 	$(function() {
     // request data every second
     setInterval(requestData, 1000);

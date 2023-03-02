@@ -39,7 +39,7 @@ html {
 	box-sizing: border-box;
   }
   
-  input[type=submit] {
+  input[type=submit], input[type=button]  {
 	-webkit-appearance: none;
 	-moz-appearance: none;
 	appearance: none;
@@ -53,9 +53,10 @@ html {
 	width: 100%;
 	color: white;
 	cursor: pointer;
+	margin-bottom: 10px;
   }
   
-  input[type=submit]:hover {
+  input[type=submit]:hover, input[type=button]:hover {
 	  background-color: #1282A2;
   }
   
@@ -112,7 +113,7 @@ a:link {
 	display: grid;
 	column-gap: 10px;
 	grid-template-columns: 400px 400px;
-	grid-template-rows: 465px 63px;
+	grid-template-rows: 465px 165px;
 	justify-content: space-evenly;
 	align-content: center;
 	border-radius: 4px;
@@ -146,7 +147,7 @@ box-sizing: border-box;
 	/* For mobile phones: */
 	.form-grid-container {
 		grid-template-columns: 400px;
-		grid-template-rows: 465px 10px 465px 10px 63px;
+		grid-template-rows: 465px 10px 465px 10px 165px;
 		margin: 0px;
 	}
 
