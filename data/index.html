@@ -4,7 +4,7 @@
   <title>Syringe Pump</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" type="text/css" href="style.css">
-  <script src="js/jquery.js"></script>
+  <script src="jquery.js"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
@@ -74,7 +74,7 @@
 				</div>
 			</div>
 			
-			<div class="grid-item item3" id = >
+			<div class="grid-item item3" id = "buttons" >
 				<input type="submit" value="Start">
 				<input type="button" value="Stop"  onclick='document.getElementById("stopForm").submit()'>
 				<input type="button" value="Reset" onclick='document.getElementById("resetForm").submit()'>
@@ -92,7 +92,19 @@
 		<a href = '/update'>Software update</a>
 	</div>
   <script>
-	var buttons = document.getElementById('buttons')
+	var buttons  = document.getElementById('buttons');
+
+	function elementInViewport() {
+		var rect = buttons.getBoundingClientRect();
+		return (
+        rect.top >= 0 &&
+        rect.left >= 0 &&
+        rect.bottom <= $(window).height() &&
+        rect.right <=  $(window).width() 
+    );
+	}
+	
+
 	$(function() {
     // request data every second
     setInterval(requestData, 1000);

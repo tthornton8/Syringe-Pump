@@ -219,11 +219,11 @@ void setup() {
   });
 
   // JS Scripts
-  server.on("/js/jquery.js", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/jquery.js", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send(SPIFFS, "/jquery.js", "text/javascript");
   });
 
-  server.on("/js/jquery-ui.js", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/jquery-ui.js", HTTP_GET, [](AsyncWebServerRequest *request){
       request->send(SPIFFS, "/jquery-ui.js", "text/javascript");
   });
 
