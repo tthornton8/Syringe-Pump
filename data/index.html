@@ -76,19 +76,15 @@
 			
 			<div class="grid-item item3" id = >
 				<input type="submit" value="Start">
-				<input type="button" value="Stop">
-				<input type="button" value="Reset">
+				<input type="button" value="Stop"  onclick='document.getElementById("stopForm").submit()'>
+				<input type="button" value="Reset" onclick='document.getElementById("resetForm").submit()'>
 			</div>
 		</div>
 	</form>
 
 
-	<form class = "grid-item" action="/stop">
-		
-	</form>
-	<form class = "grid-item" action="/reset">
-		
-	</form>
+	<form class = "grid-item" action="/stop"  id="stopForm"> </form>
+	<form class = "grid-item" action="/reset" id="resetForm"> </form>
 	<br>
 	
   </div>
