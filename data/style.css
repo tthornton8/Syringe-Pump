@@ -79,15 +79,30 @@ html {
 
   #footer {
 	clear: both;
-	padding: 0;
+	padding: 5px;
 	text-align: center;
 	vertical-align: middle;
 	line-height: normal;
 	margin: 0;
-	position: fixed;
-	bottom: 5px;
+	/* position: sticky;
+	bottom: 0px; */
 	width: 100%;
+
+	overflow: hidden;
+	background-color: black;
   }
+
+#footer a {
+	color: white;
+}
+
+#footer a:link { text-decoration: none; }
+
+#footer a:visited { text-decoration: none; }
+
+#footer a:hover { text-decoration: none; }
+
+#footer a:active { text-decoration: none; }
 
 a:link {
 	color: black;
@@ -97,14 +112,16 @@ a:link {
 	display: grid;
 	column-gap: 10px;
 	grid-template-columns: 400px 400px;
-	grid-template-rows: 465px 100px;
+	grid-template-rows: 465px 63px;
 	justify-content: space-evenly;
 	align-content: center;
+	border-radius: 4px;
 }
 
 .grid-item {
 	background-color: #f2f2f2;
 	padding: 20px;
+	border-radius: 4px;
 }
 
 .item1 {
@@ -118,6 +135,7 @@ a:link {
 .item3 {
 	grid-column: 1 / span 2;
 	grid-row: 2;
+	padding-bottom: 5px;
 }
 
 * {
@@ -128,8 +146,8 @@ box-sizing: border-box;
 	/* For mobile phones: */
 	.form-grid-container {
 		grid-template-columns: 400px;
-		grid-template-rows: 465px 10px 465px 100px;
-		margin: 10px;
+		grid-template-rows: 465px 10px 465px 10px 63px;
+		margin: 0px;
 	}
 
 	.item1 {
@@ -142,7 +160,7 @@ box-sizing: border-box;
 	}
 	.item3 {
 		grid-column: 1;
-		grid-row: 4;
+		grid-row: 5;
 	}
 
 	.grid-item {
