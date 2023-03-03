@@ -103,7 +103,7 @@ void setup() {
   Serial1.begin(115200, SERIAL_8N1, RXD1, TXD1);
   SerialPort2.begin(115200, SERIAL_8N1, 16, 17);
   
-  setupDriver(driver1, stepper1, en_pin1, true);
+  setupDriver(driver1, stepper1, en_pin1, false);
   setupDriver(driver2, stepper2, en_pin2, false);
 
 
