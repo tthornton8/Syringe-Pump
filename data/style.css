@@ -152,14 +152,15 @@ box-sizing: border-box;
 }
 
 .buttonInvisible input {
-	width: 75px;
+	width: auto;
+	min-width: 75px;
 	height: 40px;
 	border-radius:10%;
 	font-size: 0.85em;
 }
 
 .buttonInvisible {
-	margin-left: 60px;
+	margin-left: 5px;
 	position: fixed;
 	bottom: 0px;
 	background-color: transparent;

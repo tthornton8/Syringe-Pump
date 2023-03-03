@@ -197,6 +197,7 @@ void setup() {
         microsteps_request =- microsteps_request;
       }
 
+      stepper->enableOutputs();
       stepper->move(microsteps_request);
       stepper->setSpeed(speed);
 
@@ -211,8 +212,17 @@ void setup() {
     request->send(SPIFFS, "/index.html", String(), false);
   });
 
+  // stop the syringe
+  server.on("/motorsOff", HTTP_GET, [](AsyncWebServerRequest *request){
+    stepper1.disableOutputs();
+    stepper2.disableOutputs();
+    request->send(SPIFFS, "/index.html", String(), false);
+  });
+
   // reset volume
   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
+    stepper1.enableOutputs();
+    stepper2.enableOutputs();
     stepper1.setCurrentPosition(0);
     stepper2.setCurrentPosition(0);
     request->send(SPIFFS, "/index.html", String(), false);
