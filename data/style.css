@@ -120,7 +120,7 @@ a:link {
 	display: grid;
 	column-gap: 10px;
 	grid-template-columns: 400px 400px;
-	grid-template-rows: 465px 165px;
+	grid-template-rows: auto auto;
 	justify-content: space-evenly;
 	align-content: center;
 	border-radius: 4px;
@@ -130,6 +130,7 @@ a:link {
 	background-color: #f2f2f2;
 	padding: 20px;
 	border-radius: 4px;
+	margin-bottom: 10px;
 }
 
 .item1 {
@@ -168,7 +169,7 @@ box-sizing: border-box;
 	/* For mobile phones: */
 	.form-grid-container {
 		grid-template-columns: 400px;
-		grid-template-rows: 465px 10px 465px 10px 165px;
+		grid-template-rows: 465px 10px 465px 10px auto;
 		margin: 0px;
 	}
 
