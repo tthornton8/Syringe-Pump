@@ -164,7 +164,7 @@ box-sizing: border-box;
 	background-color: transparent;
 }
 
-@media only screen and (max-width: 768px) {
+@media only screen and (max-width: 850px) {
 	/* For mobile phones: */
 	.form-grid-container {
 		grid-template-columns: 400px;
