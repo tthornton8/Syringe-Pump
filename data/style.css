@@ -157,19 +157,23 @@ box-sizing: border-box;
 	height: 40px;
 	border-radius:10%;
 	font-size: 0.85em;
+	margin: 3px;
 }
 
 .buttonInvisible {
-	margin-left: 5px;
+	margin-left: -10px;
+	padding: 0;
 	position: fixed;
 	bottom: 0px;
 	background-color: transparent;
+	display: flex;
+    justify-content: center;
 }
 
 @media only screen and (max-width: 850px) {
 	/* For mobile phones: */
 	.form-grid-container {
-		grid-template-columns: 400px;
+		grid-template-columns: auto;
 		grid-template-rows: 465px 10px 465px 10px auto;
 		margin: 0px;
 	}
@@ -185,12 +189,6 @@ box-sizing: border-box;
 	.item3 {
 		grid-column: 1;
 		grid-row: 5;
-	}
-
-	.buttonInvisible {
-		position: fixed;
-		bottom: 0px;
-		background-color: transparent;
 	}
 
 	.grid-item {
