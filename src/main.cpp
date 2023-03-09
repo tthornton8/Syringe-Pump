@@ -45,6 +45,7 @@ AsyncWebServer server(80);    // SW UART drivers
 
 // AccelStepper* stepper[] = {&stepper1, &stepper2};
 double diameter = 15; 
+byte resetFlag = false;
 
 double calcVolume(double steps) {
   double micro_steps  = double(steps) / double(microsteps); // ul
@@ -155,6 +156,10 @@ void setup() {
 
   // Speed / volume control
   server.on("/run", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    setupDriver(driver1, stepper1, en_pin1, false);
+    setupDriver(driver2, stepper2, en_pin2, false);
+    resetFlag = false;
+
     for (int i = 1; i <= 2; i++) {
       AccelStepper* stepper;
 
@@ -207,6 +212,8 @@ void setup() {
 
   // stop the syringe
   server.on("/stop", HTTP_GET, [](AsyncWebServerRequest *request){
+    resetFlag = false;
+
     stepper1.stop();
     stepper2.stop();
     request->send(SPIFFS, "/index.html", String(), false);
@@ -214,6 +221,8 @@ void setup() {
 
   // stop the syringe
   server.on("/motorsOff", HTTP_GET, [](AsyncWebServerRequest *request){
+    resetFlag = false;
+
     stepper1.disableOutputs();
     stepper2.disableOutputs();
     request->send(SPIFFS, "/index.html", String(), false);
@@ -221,11 +230,17 @@ void setup() {
 
   // reset volume
   server.on("/reset", HTTP_GET, [](AsyncWebServerRequest *request){
-    stepper1.enableOutputs();
-    stepper2.enableOutputs();
-    stepper1.setCurrentPosition(0);
-    stepper2.setCurrentPosition(0);
-    request->send(SPIFFS, "/index.html", String(), false);
+    if (resetFlag) {
+      ESP.restart();
+    } else {
+      stepper1.enableOutputs();
+      stepper2.enableOutputs();
+      stepper1.setCurrentPosition(0);
+      stepper2.setCurrentPosition(0);
+      request->send(SPIFFS, "/index.html", String(), false);
+
+      resetFlag = true;
+    }
   });
 
   // JS Scripts
