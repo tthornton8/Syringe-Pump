@@ -89,7 +89,6 @@ void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN, bool
   stepper.setEnablePin(EN_PIN);
   stepper.setPinsInverted(dir_invert, false, true);
   stepper.enableOutputs();
-  stepper.setCurrentPosition(0);
   stepper.setSpeed(0);
 }
 
@@ -106,6 +105,9 @@ void setup() {
   
   setupDriver(driver1, stepper1, en_pin1, false);
   setupDriver(driver2, stepper2, en_pin2, false);
+  stepper1.setCurrentPosition(0);
+  stepper2.setCurrentPosition(0);
+
 
 
   WiFi.softAP(ssid, password);
