@@ -8,6 +8,7 @@
 #include <TMCSTepper.h>
 #include <HardwareSerial.h>
 #include <TaskScheduler.h>
+#include <ESPmDNS.h>
 
 #define RXD1 12
 #define TXD1 13
@@ -126,7 +127,14 @@ void setup() {
   // Print ESP32Local IP Address
   Serial.println(WiFi.localIP());
 
+  // start task scheduler
   ts.startNow();
+
+  // start multicast DNS on domain name http://electrospinning.local
+  if(!MDNS.begin("electrospinning")) {
+     Serial.println("Error starting mDNS");
+     return;
+}
 
   if(!SPIFFS.begin()){
     Serial_debug.println("An Error has occurred while mounting SPIFFS");
