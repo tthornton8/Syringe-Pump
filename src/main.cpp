@@ -15,8 +15,7 @@
 #define RXD2 16
 #define TXD2 15
 
-HardwareSerial SerialPort2 (2);   // This is the key line missing.
-// HardwareSerial SerialPort2 (2);   // This is the key line missing.
+HardwareSerial SerialPort2 (2);   // Without this, it falls appart (something to do with not configing the UART bus)
 
 
 const double degrees_per_step = 1.8;
@@ -40,17 +39,22 @@ const char* password          = "electrospinning";
 
 void resetMS();
 
+// stepper driver and motor objects
 TMC2208Stepper driver1(&SERIAL_PORT1, R_SENSE);   
 TMC2208Stepper driver2(&SERIAL_PORT2, R_SENSE);   
 AccelStepper stepper2(AccelStepper::DRIVER, step_pin2, dir_pin2);
 AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
-AsyncWebServer server(80);    // SW UART drivers
 
+// web server
+AsyncWebServer server(80);  
+
+// the drivers are problematic in the electric field (many kV) so we need to 
+// do this (they have a habit of resetting themselves back to 8 microsteps)
 Scheduler ts;
-Task resetDriver (250, TASK_FOREVER, &resetMS);
+Task resetDriver (250, TASK_FOREVER, &resetMS); 
 
-// AccelStepper* stepper[] = {&stepper1, &stepper2};
-double diameter = 15; 
+// global variables
+volatile double diameter = 15; 
 volatile byte resetFlag = false;
 volatile byte motorsOff = false;
 
