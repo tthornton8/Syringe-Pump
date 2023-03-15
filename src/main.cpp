@@ -38,23 +38,21 @@ const char* password          = "electrospinning";
 #define Serial_debug Serial
 #define R_SENSE 0.11f
 
+void resetMS();
+
 TMC2208Stepper driver1(&SERIAL_PORT1, R_SENSE);   
 TMC2208Stepper driver2(&SERIAL_PORT2, R_SENSE);   
 AccelStepper stepper2(AccelStepper::DRIVER, step_pin2, dir_pin2);
 AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
 AsyncWebServer server(80);    // SW UART drivers
+
 Scheduler ts;
-
-void resetMS() {
-  driver1.microsteps(microsteps);
-  driver2.microsteps(microsteps);
-}
-
-Task resetDriver (1000*TASK_MILLISECOND, TASK_FOREVER, &resetMS, &ts);
+Task resetDriver (250, TASK_FOREVER, &resetMS);
 
 // AccelStepper* stepper[] = {&stepper1, &stepper2};
 double diameter = 15; 
-byte resetFlag = false;
+volatile byte resetFlag = false;
+volatile byte motorsOff = false;
 
 double calcVolume(double steps) {
   double micro_steps  = double(steps) / double(microsteps); // ul
@@ -97,8 +95,32 @@ void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN, bool
   stepper.setAcceleration(10000); 
   stepper.setEnablePin(EN_PIN);
   stepper.setPinsInverted(dir_invert, false, true);
-  stepper.enableOutputs();
-  stepper.setSpeed(0);
+
+  if (motorsOff) {
+    stepper.disableOutputs();
+  } else {
+    stepper.enableOutputs();
+  }
+  // stepper.setSpeed(0);
+}
+
+volatile bool stopflag = false;
+void resetMS() {
+  uint16_t ms1 = driver1.microsteps();
+  uint16_t ms2 = driver2.microsteps();
+
+  if ((ms1 != microsteps) and (ms2 != microsteps)) {
+    if (stopflag) {
+      stepper1.stop();
+      stepper2.stop();
+    }
+    stopflag = true;
+  } else {
+      stopflag = false;
+  }
+
+  setupDriver(driver1, stepper1, en_pin1, false);
+  setupDriver(driver2, stepper2, en_pin2, false);
 }
 
 void setup() { 
@@ -128,7 +150,9 @@ void setup() {
   Serial.println(WiFi.localIP());
 
   // start task scheduler
-  ts.startNow();
+  ts.addTask(resetDriver);
+  resetDriver.enable();
+
 
   // start multicast DNS on domain name http://electrospinning.local
   if(!MDNS.begin("electrospinning")) {
@@ -178,13 +202,14 @@ void setup() {
                                             ",\"ms1\": " + String(ms1, 3) + 
                                             ",\"ms2\": " + String(ms2, 3) + 
                                             "}"); 
-  });
+      });
 
   // Speed / volume control
   server.on("/run", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    motorsOff = false;
+    resetFlag = false;
     setupDriver(driver1, stepper1, en_pin1, false);
     setupDriver(driver2, stepper2, en_pin2, false);
-    resetFlag = false;
 
     for (int i = 1; i <= 2; i++) {
       AccelStepper* stepper;
@@ -251,6 +276,8 @@ void setup() {
 
     stepper1.disableOutputs();
     stepper2.disableOutputs();
+
+    motorsOff = true;
     request->send(SPIFFS, "/index.html", String(), false);
   });
 
@@ -282,7 +309,8 @@ void setup() {
   server.begin();
 }
 
-unsigned long last_set_ms = micros();
+// volatile unsigned long last_set_ms = millis();
+// volatile unsigned long currTime;
 void loop() {
   stepper1.runSpeedToPosition();
   stepper2.runSpeedToPosition();
@@ -295,6 +323,5 @@ void loop() {
     stepper2.setSpeed(0);
   }
 
-  ts.execute();
-  
+  ts.execute();  
 }
