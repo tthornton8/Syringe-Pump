@@ -17,6 +17,8 @@
 
 HardwareSerial SerialPort2 (2);   // Without this, it falls appart (something to do with not configing the UART bus)
 
+TaskHandle_t AccelStepperTask;
+TaskHandle_t ResetStepperTask;
 
 const double degrees_per_step = 1.8;
 const int microsteps          = 256;
@@ -114,17 +116,40 @@ void resetMS() {
   uint16_t ms2 = driver2.microsteps();
 
   if ((ms1 != microsteps) and (ms2 != microsteps)) {
+    // onyl reset driver if needed
+    setupDriver(driver1, stepper1, en_pin1, false);
+    setupDriver(driver2, stepper2, en_pin2, false);
+
     if (stopflag) {
+      // stop if not set properly
       stepper1.stop();
       stepper2.stop();
     }
     stopflag = true;
   } else {
-      stopflag = false;
+    stopflag = false;
   }
+}
 
-  setupDriver(driver1, stepper1, en_pin1, false);
-  setupDriver(driver2, stepper2, en_pin2, false);
+void AccelStepperTaskCode( void * pvParameters) {
+  for (;;) {
+    stepper1.runSpeedToPosition();
+    stepper2.runSpeedToPosition();
+
+    if (stepper1.distanceToGo() == 0) {
+      stepper1.setSpeed(0);
+    }
+
+    if (stepper2.distanceToGo() == 0) {
+      stepper2.setSpeed(0);
+    }
+  }
+}
+
+void ResetStepperTaskCode( void * pvParameters) {
+  for (;;) {
+    ts.execute();  
+  }
 }
 
 void setup() { 
@@ -168,6 +193,28 @@ void setup() {
     Serial_debug.println("An Error has occurred while mounting SPIFFS");
     return;
   }
+
+  xTaskCreatePinnedToCore(
+    AccelStepperTaskCode,
+    "AccelStepperTask",
+    10000,
+    NULL,
+    0,
+    &AccelStepperTask,
+    0
+  );
+  delay(500);
+
+  xTaskCreatePinnedToCore(
+    ResetStepperTaskCode,
+    "ResetStepperTask",
+    1000,
+    NULL,
+    0,
+    &ResetStepperTask,
+    1
+  );
+  delay(500);
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -316,16 +363,5 @@ void setup() {
 // volatile unsigned long last_set_ms = millis();
 // volatile unsigned long currTime;
 void loop() {
-  stepper1.runSpeedToPosition();
-  stepper2.runSpeedToPosition();
-
-  if (stepper1.distanceToGo() == 0) {
-    stepper1.setSpeed(0);
-  }
-
-  if (stepper2.distanceToGo() == 0) {
-    stepper2.setSpeed(0);
-  }
-
-  ts.execute();  
+  
 }
