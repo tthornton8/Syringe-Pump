@@ -186,6 +186,13 @@
             $("#motorPos2_span").text(data.motorPos2);
             $("#speed2_span").text(data.speed2);
 			$("#rate2_span").text(data.rate2);
+
+			if (data.ms1 != 256) {
+				alert("Stepper 1 microsteps adjust");
+			}
+			if (data.ms2 != 256) {
+				alert("Stepper 2 microsteps adjust");
+			}
           } else { // a problem occurred
             $("#motorPos1_span").text("?");
             $("#speed1_span").text("?");

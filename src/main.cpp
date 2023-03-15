@@ -145,8 +145,8 @@ void setup() {
 
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
-    char ms1[10];
-    char ms2[10];
+    char ms1[80];
+    char ms2[80];
     
     long steps1   = -stepper1.currentPosition();
     double rate1  = stepper1.speed();
@@ -167,8 +167,8 @@ void setup() {
                                             ",\"motorPos2\": " + String(volume2, 2) + 
                                             ",\"speed2\": " + String(speed2, 4) + 
                                             ",\"rate2\": " + String(rate2, 4) + 
-                                            ",\"ms1\": " + String(ms1, 4) + 
-                                            ",\"ms2\": " + String(ms2, 4) + 
+                                            ",\"ms1\": " + String(ms1, 3) + 
+                                            ",\"ms2\": " + String(ms2, 3) + 
                                             "}"); 
   });
 
