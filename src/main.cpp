@@ -7,6 +7,7 @@
 #include <AsyncElegantOTA.h>
 #include <TMCSTepper.h>
 #include <HardwareSerial.h>
+#include <TaskScheduler.h>
 
 #define RXD1 12
 #define TXD1 13
@@ -18,7 +19,7 @@ HardwareSerial SerialPort2 (2);   // This is the key line missing.
 
 
 const double degrees_per_step = 1.8;
-const double microsteps       = 256.;
+const int microsteps          = 256;
 const double pitch            = 0.792;
 const int dir_pin1            = 23;
 const int step_pin1           = 22; 
@@ -41,7 +42,14 @@ TMC2208Stepper driver2(&SERIAL_PORT2, R_SENSE);
 AccelStepper stepper2(AccelStepper::DRIVER, step_pin2, dir_pin2);
 AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
 AsyncWebServer server(80);    // SW UART drivers
+Scheduler ts;
 
+void resetMS() {
+  driver1.microsteps(microsteps);
+  driver2.microsteps(microsteps);
+}
+
+Task resetDriver (1000*TASK_MILLISECOND, TASK_FOREVER, &resetMS, &ts);
 
 // AccelStepper* stepper[] = {&stepper1, &stepper2};
 double diameter = 15; 
@@ -69,7 +77,7 @@ int calcSteps(double volume) {
   double revs   = length / pitch; // ul
   double steps  = (revs * 360.0) / degrees_per_step; // ul
   
-  int microsteps_request = ceil(steps*microsteps);
+  int microsteps_request = ceil(steps*double(microsteps));
   return microsteps_request;
 }
 
@@ -82,7 +90,7 @@ void setupDriver(TMC2208Stepper& driver, AccelStepper& stepper, int EN_PIN, bool
   driver.toff(5);
   driver.rms_current(1200);    // Set stepper current to 600mA. The command is the same as command TMC2130.setCurrent(600, 0.11, 0.5);
   driver.pwm_autoscale(true);
-  driver.microsteps(256);
+  driver.microsteps(microsteps);
 
   stepper.setMaxSpeed(500000); 
   stepper.setAcceleration(10000); 
@@ -108,8 +116,6 @@ void setup() {
   stepper1.setCurrentPosition(0);
   stepper2.setCurrentPosition(0);
 
-
-
   WiFi.softAP(ssid, password);
   IPAddress IP = WiFi.softAPIP();
 
@@ -119,6 +125,8 @@ void setup() {
 
   // Print ESP32Local IP Address
   Serial.println(WiFi.localIP());
+
+  ts.startNow();
 
   if(!SPIFFS.begin()){
     Serial_debug.println("An Error has occurred while mounting SPIFFS");
@@ -137,9 +145,12 @@ void setup() {
 
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
-    long steps1 = -stepper1.currentPosition();
+    char ms1[10];
+    char ms2[10];
+    
+    long steps1   = -stepper1.currentPosition();
     double rate1  = stepper1.speed();
-    long steps2 = -stepper2.currentPosition();
+    long steps2   = -stepper2.currentPosition();
     double rate2  = stepper2.speed();
 
     double volume1 = calcVolume(steps1)*1000.;
@@ -147,12 +158,17 @@ void setup() {
     double speed1  = calcSpeed(rate1)*3600.;
     double speed2  = calcSpeed(rate2)*3600.;
 
+    sprintf(ms1, "%u", driver1.microsteps());
+    sprintf(ms2, "%u", driver2.microsteps());
+
     request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + 
                                             ",\"speed1\": " + String(speed1, 4) + 
                                             ",\"rate1\": " + String(rate1, 4) + 
                                             ",\"motorPos2\": " + String(volume2, 2) + 
                                             ",\"speed2\": " + String(speed2, 4) + 
                                             ",\"rate2\": " + String(rate2, 4) + 
+                                            ",\"ms1\": " + String(ms1, 4) + 
+                                            ",\"ms2\": " + String(ms2, 4) + 
                                             "}"); 
   });
 
@@ -258,6 +274,7 @@ void setup() {
   server.begin();
 }
 
+unsigned long last_set_ms = micros();
 void loop() {
   stepper1.runSpeedToPosition();
   stepper2.runSpeedToPosition();
@@ -269,4 +286,7 @@ void loop() {
   if (stepper2.distanceToGo() == 0) {
     stepper2.setSpeed(0);
   }
+
+  ts.execute();
+  
 }
