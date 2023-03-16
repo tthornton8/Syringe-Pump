@@ -17,7 +17,6 @@
 
 HardwareSerial SerialPort2 (2);   // Without this, it falls appart (something to do with not configing the UART bus)
 
-TaskHandle_t AccelStepperTask;
 TaskHandle_t ResetStepperTask;
 
 const double degrees_per_step = 1.8;
@@ -49,11 +48,6 @@ AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
 
 // web server
 AsyncWebServer server(80);  
-
-// the drivers are problematic in the electric field (many kV) so we need to 
-// do this (they have a habit of resetting themselves back to 8 microsteps)
-Scheduler ts;
-Task resetDriver (250, TASK_FOREVER, &resetMS); 
 
 // global variables
 volatile double diameter = 15; 
@@ -144,12 +138,6 @@ void runSteppers() {
   }
 }
 
-void AccelStepperTaskCode( void * pvParameters) {
-  for (;;) {
-    runSteppers();
-  }
-}
-
 void ResetStepperTaskCode( void * pvParameters) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
   const TickType_t xFrequency = 250; //delay for mS
@@ -188,10 +176,6 @@ void setup() {
   // Print ESP32Local IP Address
   Serial.println(WiFi.localIP());
 
-  // start task scheduler
-  ts.addTask(resetDriver);
-  resetDriver.enable();
-
 
   // start multicast DNS on domain name http://electrospinning.local
   if(!MDNS.begin("electrospinning")) {
@@ -203,16 +187,6 @@ void setup() {
     Serial_debug.println("An Error has occurred while mounting SPIFFS");
     return;
   }
-
-  // xTaskCreatePinnedToCore(
-  //   AccelStepperTaskCode,
-  //   "AccelStepperTask",
-  //   10000,
-  //   NULL,
-  //   0,
-  //   &AccelStepperTask,
-  //   1
-  // );
 
   xTaskCreatePinnedToCore(
     ResetStepperTaskCode,
