@@ -208,6 +208,11 @@ void setup() {
     request->send(SPIFFS, "/style.css", "text/css");
   });
 
+  // Route to load favicon.ico file
+  server.on("/favicon.ico", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(SPIFFS, "/favicon.ico", "image/ico");
+  });
+
   // Return motor position when requested
   server.on("/motor_pos", HTTP_GET, [](AsyncWebServerRequest *request){
     char ms1[80];
