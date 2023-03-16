@@ -131,24 +131,34 @@ void resetMS() {
   }
 }
 
+void runSteppers() {
+  stepper1.runSpeedToPosition();
+  stepper2.runSpeedToPosition();
+
+  if (stepper1.distanceToGo() == 0) {
+    stepper1.setSpeed(0);
+  }
+
+  if (stepper2.distanceToGo() == 0) {
+    stepper2.setSpeed(0);
+  }
+}
+
 void AccelStepperTaskCode( void * pvParameters) {
   for (;;) {
-    stepper1.runSpeedToPosition();
-    stepper2.runSpeedToPosition();
-
-    if (stepper1.distanceToGo() == 0) {
-      stepper1.setSpeed(0);
-    }
-
-    if (stepper2.distanceToGo() == 0) {
-      stepper2.setSpeed(0);
-    }
+    runSteppers();
   }
 }
 
 void ResetStepperTaskCode( void * pvParameters) {
+  TickType_t xLastWakeTime = xTaskGetTickCount();
+  const TickType_t xFrequency = 250; //delay for mS
+
   for (;;) {
-    ts.execute();  
+    xLastWakeTime = xTaskGetTickCount();
+    vTaskDelayUntil( &xLastWakeTime, xFrequency );
+
+    resetMS();
   }
 }
 
@@ -194,27 +204,25 @@ void setup() {
     return;
   }
 
-  xTaskCreatePinnedToCore(
-    AccelStepperTaskCode,
-    "AccelStepperTask",
-    10000,
-    NULL,
-    0,
-    &AccelStepperTask,
-    0
-  );
-  delay(500);
+  // xTaskCreatePinnedToCore(
+  //   AccelStepperTaskCode,
+  //   "AccelStepperTask",
+  //   10000,
+  //   NULL,
+  //   0,
+  //   &AccelStepperTask,
+  //   1
+  // );
 
   xTaskCreatePinnedToCore(
     ResetStepperTaskCode,
     "ResetStepperTask",
-    1000,
+    10000,
     NULL,
-    0,
+    1,
     &ResetStepperTask,
     1
   );
-  delay(500);
 
   // Route for root / web page
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -363,5 +371,5 @@ void setup() {
 // volatile unsigned long last_set_ms = millis();
 // volatile unsigned long currTime;
 void loop() {
-  
+  runSteppers();
 }
