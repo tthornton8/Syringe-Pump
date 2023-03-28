@@ -115,7 +115,7 @@ void resetMS() {
   uint16_t ms1 = driver1.microsteps();
   uint16_t ms2 = driver2.microsteps();
 
-  if ((ms1 != microsteps) and (ms2 != microsteps)) {
+  if ((ms1 != microsteps) or (ms2 != microsteps)) {
     // onyl reset driver if needed
     setupDriver(driver1, stepper1, en_pin1, false);
     setupDriver(driver2, stepper2, en_pin2, false);
