@@ -188,11 +188,14 @@
             $("#speed2_span").text(data.speed2);
 			$("#rate2_span").text(data.rate2);
 
+			var today = new Date();
+			var time  = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+
 			if (data.ms1 != 256) {
-				alert("Stepper 1 microsteps adjust");
+				alert(time + " - Stepper 1 microsteps adjust");
 			}
 			if (data.ms2 != 256) {
-				alert("Stepper 2 microsteps adjust");
+				alert(time + " - Stepper 2 microsteps adjust");
 			}
           } else { // a problem occurred
             $("#motorPos1_span").text("?");
