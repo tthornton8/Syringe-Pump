@@ -49,10 +49,16 @@ AccelStepper stepper1(AccelStepper::DRIVER, step_pin1, dir_pin1);
 // web server
 AsyncWebServer server(80);  
 
+
 // global variables
 volatile double diameter = 15; 
 volatile byte resetFlag = false;
 volatile byte motorsOff = false;
+
+int count_digit(int number) {
+   return int(log10(number) + 1);
+}
+
 
 double calcVolume(double steps) {
   double micro_steps  = double(steps) / double(microsteps); // ul
@@ -176,7 +182,6 @@ void setup() {
   // Print ESP32Local IP Address
   Serial.println(WiFi.localIP());
 
-
   // start multicast DNS on domain name http://electrospinning.local
   if(!MDNS.begin("electrospinning")) {
      Serial.println("Error starting mDNS");
@@ -188,14 +193,13 @@ void setup() {
     return;
   }
 
-  xTaskCreatePinnedToCore(
+  xTaskCreate(
     ResetStepperTaskCode,
     "ResetStepperTask",
     10000,
     NULL,
-    1,
-    &ResetStepperTask,
-    1
+    5,
+    &ResetStepperTask
   );
 
   // Route for root / web page
@@ -228,19 +232,26 @@ void setup() {
     double speed1  = calcSpeed(rate1)*3600.;
     double speed2  = calcSpeed(rate2)*3600.;
 
-    sprintf(ms1, "%u", driver1.microsteps());
-    sprintf(ms2, "%u", driver2.microsteps());
+    uint16_t ms1_res = driver1.microsteps();
+    uint16_t ms2_res = driver2.microsteps();
 
-    request->send(200, "application/json", "{\"motorPos1\": " + String(volume1, 2) + 
+    sprintf(ms1, "%u", ms1_res);
+    sprintf(ms2, "%u", ms2_res);
+
+    String JSON = String("{\"motorPos1\": " + String(volume1, 2) + 
                                             ",\"speed1\": " + String(speed1, 4) + 
                                             ",\"rate1\": " + String(rate1, 4) + 
                                             ",\"motorPos2\": " + String(volume2, 2) + 
                                             ",\"speed2\": " + String(speed2, 4) + 
                                             ",\"rate2\": " + String(rate2, 4) + 
-                                            ",\"ms1\": " + String(ms1, 3) + 
-                                            ",\"ms2\": " + String(ms2, 3) + 
-                                            "}"); 
-      });
+                                            ",\"ms1\": " + String(ms1, count_digit(ms1_res)) + 
+                                            ",\"ms2\": " + String(ms2, count_digit(ms2_res)) + 
+                                            "}");
+
+    request->send(200, "application/json", JSON); 
+    resetMS();
+
+    });
 
   // Speed / volume control
   server.on("/run", HTTP_GET, [] (AsyncWebServerRequest *request) {
