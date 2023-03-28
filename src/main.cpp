@@ -126,6 +126,7 @@ void resetMS() {
       stepper2.stop();
     }
     stopflag = true;
+
   } else {
     stopflag = false;
   }
@@ -146,7 +147,7 @@ void runSteppers() {
 
 void ResetStepperTaskCode( void * pvParameters) {
   TickType_t xLastWakeTime = xTaskGetTickCount();
-  const TickType_t xFrequency = 200; //delay for mS
+  const TickType_t xFrequency = 100; //delay for mS
 
   for (;;) {
     xLastWakeTime = xTaskGetTickCount();
