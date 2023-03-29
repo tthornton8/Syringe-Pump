@@ -13,7 +13,7 @@
     <h1>Syringe Pump Control <i class="fas fa-cogs"></i></h1>
   </div>
   <div class="content">
-	<form action="/run">
+	<form action="/run" onsubmit='submitForm()'>
 		<div class = "form-grid-container">
 			<div class="grid-item item1">
 				<h2 style = "text-align: center;"> Pump 1 </h2>
@@ -150,6 +150,18 @@
 				}
 			}
 		}
+	}
+
+	function submitForm () {
+		vol1 = document.getElementsByName("volume1")[0].valueAsNumber;
+		vol2 = document.getElementsByName("volume2")[0].valueAsNumber;
+
+		if ((vol1 > 10) || (vol2 > 10)) {
+			return confirm("Are you sure, requested volume is quite high?");
+		} else {
+			return true;
+		}
+
 	}
 
 	var handler = onVisibilityChange(buttonscheck, function() {
