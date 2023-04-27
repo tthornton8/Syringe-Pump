@@ -243,14 +243,15 @@ void setup() {
     char ms1[80];
     char ms2[80];
     
+    // get motor positions and speed
     long steps1   = -stepper1.currentPosition();
     double rate1  = stepper1.speed();
     long target1  = stepper1.distanceToGo();
     long steps2   = -stepper2.currentPosition();
     double rate2  = stepper2.speed();
     long target2  = stepper2.distanceToGo();
-    //1164 3682
 
+    // turn those into volumes
     double volume1    = calcVolume(steps1)*1000.;
     double volume2    = calcVolume(steps2)*1000.;
     double remaining1 = calcVolume(target1)*1000.;
@@ -258,12 +259,15 @@ void setup() {
     double speed1     = calcSpeed(rate1)*3600.;
     double speed2     = calcSpeed(rate2)*3600.;
 
+    // get driver microstep settings
     uint16_t ms1_res = driver1.microsteps();
     uint16_t ms2_res = driver2.microsteps();
 
+    // turn those into a string
     sprintf(ms1, "%u", ms1_res);
     sprintf(ms2, "%u", ms2_res);
 
+    // create a JSON document with the data
     String JSON = String("{\"motorPos1\": " + String(volume1, 2) + 
                           ",\"speed1\": " + String(speed1, 4) + 
                           ",\"rate1\": " + String(rate1, 4) + 
@@ -276,7 +280,10 @@ void setup() {
                           ",\"ms2\": " + String(ms2, count_digit(ms2_res)) + 
                           "}");
 
+    // send the JSON back to the client
     request->send(200, "application/json", JSON); 
+
+    // reset the drivers for good measure
     resetMS();
 
     });
