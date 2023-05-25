@@ -246,10 +246,10 @@ void setup() {
     // get motor positions and speed
     long steps1   = -stepper1.currentPosition();
     double rate1  = stepper1.speed();
-    long target1  = stepper1.distanceToGo();
+    long target1  = -stepper1.distanceToGo();
     long steps2   = -stepper2.currentPosition();
     double rate2  = stepper2.speed();
-    long target2  = stepper2.distanceToGo();
+    long target2  = -stepper2.distanceToGo();
 
     // turn those into volumes
     double volume1    = calcVolume(steps1)*1000.;
