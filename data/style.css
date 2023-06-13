@@ -174,7 +174,7 @@ box-sizing: border-box;
 	/* For mobile phones: */
 	.form-grid-container {
 		grid-template-columns: auto;
-		grid-template-rows: 465px 10px 465px 10px auto;
+		grid-template-rows: 480px 10px 480px 10px auto;
 		margin: 0px;
 	}
 
